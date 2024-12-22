@@ -1,7 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-const cors = require("cors"); // Import CORS middleware
+const cors = require("cors");
+const morgan = require("morgan"); // Add morgan for logging
 
 dotenv.config({ path: "./.env" });
 console.log("MONGO_URI from dotenv:", process.env.MONGO_URI); // Debugging
@@ -11,10 +12,9 @@ const bookRoutes = require("./routes/bookRoutes");
 
 const app = express();
 
-// Enable CORS for all origins
-app.use(cors());
-
 // Middleware
+app.use(cors()); // Enable CORS
+app.use(morgan("dev")); // Add logging for API requests
 app.use(express.json());
 
 // Database Connection
@@ -29,6 +29,12 @@ mongoose
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "An unexpected error occurred!" });
+});
 
 // Server Start
 const PORT = process.env.PORT || 5000;
