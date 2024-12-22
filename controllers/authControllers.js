@@ -1,5 +1,8 @@
-const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+
+// In-memory blacklist for invalidating tokens
+let blacklist = [];
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -32,32 +35,16 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
-  console.log("Received login request");
-  console.log("Email:", email);
-  console.log("Password:", password);
-
   try {
-    // Check if user exists
     const user = await User.findOne({ email });
-    console.log("User found:", user);
 
-    if (!user) {
-      console.error("No user found with this email.");
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-    // Compare password
     const isPasswordMatch = await user.matchPassword(password);
-    console.log("Password match:", isPasswordMatch);
-
-    if (!isPasswordMatch) {
-      console.error("Password does not match.");
+    if (!isPasswordMatch)
       return res.status(400).json({ message: "Invalid credentials" });
-    }
 
-    // Generate token and return response
     const token = generateToken(user._id);
-    console.log("Generated token:", token);
 
     res.json({
       _id: user._id,
@@ -66,9 +53,21 @@ const loginUser = async (req, res) => {
       token,
     });
   } catch (error) {
-    console.error("Error during login process:", error.message);
     res.status(500).json({ message: "Error logging in user", error });
   }
 };
 
-module.exports = { registerUser, loginUser };
+// Logout User - Add token to blacklist
+const logoutUser = (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    return res.status(400).json({ message: "No token provided." });
+  }
+
+  // Add the token to the blacklist
+  blacklist.push(token);
+
+  res.status(200).json({ message: "Logged out successfully." });
+};
+
+module.exports = { registerUser, loginUser, logoutUser, blacklist };
