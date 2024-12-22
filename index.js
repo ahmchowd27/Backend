@@ -1,13 +1,18 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const cors = require("cors"); // Import CORS middleware
 
 dotenv.config({ path: "./.env" });
 console.log("MONGO_URI from dotenv:", process.env.MONGO_URI); // Debugging
+
 const authRoutes = require("./routes/authRoutes");
 const bookRoutes = require("./routes/bookRoutes");
 
 const app = express();
+
+// Enable CORS for all origins
+app.use(cors());
 
 // Middleware
 app.use(express.json());

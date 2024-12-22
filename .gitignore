@@ -1,0 +1,29 @@
+# Ignore environment variables
+.env
+
+# Ignore Node.js dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Compiled source
+dist/
+build/
+*.out
+
+# IDE files
+.idea/
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db
