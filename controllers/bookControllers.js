@@ -54,26 +54,36 @@ const getBooksByMood = async (req, res) => {
 
 // 2. Save Book from Suggestions
 const saveSuggestedBook = async (req, res) => {
-  const { bookId, title, authors, description, coverImage, link, genre } =
-    req.body;
+  const { bookId, genre } = req.body;
   const userId = req.user.id;
 
   try {
+    // Check if the book already exists in the saved list
     const user = await User.findById(userId);
-
     if (user.savedBooks.some((book) => book.bookId === bookId)) {
       return res.status(400).json({ message: "Book already saved." });
     }
 
-    user.savedBooks.push({
+    // Fetch book details from Google Books API
+    const response = await axios.get(
+      `https://www.googleapis.com/books/v1/volumes/${bookId}`
+    );
+
+    const bookData = response.data.volumeInfo;
+
+    // Construct the book object to save
+    const bookToSave = {
       bookId,
-      title,
-      authors,
-      description,
-      coverImage,
-      link,
+      title: bookData.title,
+      authors: bookData.authors || ["Unknown"],
+      description: bookData.description || "No description available",
+      coverImage: bookData.imageLinks?.thumbnail,
+      link: bookData.infoLink,
       genre,
-    });
+    };
+
+    // Save the book to the user's savedBooks list
+    user.savedBooks.push(bookToSave);
     await user.save();
 
     res.status(201).json({ message: "Book saved successfully." });
@@ -81,7 +91,6 @@ const saveSuggestedBook = async (req, res) => {
     res.status(500).json({ message: "Error saving book", error: err.message });
   }
 };
-
 // 3. Mark Book as Finished
 const markBookFinished = async (req, res) => {
   const { bookId } = req.body;
