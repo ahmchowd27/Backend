@@ -21,10 +21,12 @@ const getBooksByMood = async (req, res) => {
       authors: item.volumeInfo.authors,
       description: item.volumeInfo.description,
       link: item.volumeInfo.infoLink,
+      coverImage: item.volumeInfo.imageLinks?.thumbnail || "", // Add coverImage field
     }));
 
-    res.json({ mood, genre, books: books.slice(0, 5) });
+    res.json({ mood, genre, books: books.slice(0, 5) }); // Return only the top 5 books
   } catch (error) {
+    console.error("Error fetching books:", error.message);
     res.status(500).json({ message: "Unable to fetch books at this time." });
   }
 };
